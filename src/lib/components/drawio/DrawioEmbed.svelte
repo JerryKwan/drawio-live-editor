@@ -1,6 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
-  import { currentXml, settings } from "../../stores/appStore";
+  import { get } from "svelte/store";
+  import {
+    currentXml,
+    settings,
+    isEditorFocused,
+    focusRestoreTrigger,
+  } from "../../stores/appStore";
 
   let iframe: HTMLIFrameElement;
   let isInternalChange = false;
@@ -9,12 +15,17 @@
 
   const drawioUrl = new URL($settings.drawio.baseUrl);
   // Configure Draw.io embed mode
+  // Ref: https://www.drawio.com/doc/faq/embed-mode
+  //      https://www.drawio.com/doc/faq/supported-url-parameters
   drawioUrl.searchParams.append("embed", "1");
-  drawioUrl.searchParams.append("ui", "min");
+  // drawioUrl.searchParams.append('ui', 'min');
   drawioUrl.searchParams.append("spin", "1");
   drawioUrl.searchParams.append("modified", "unsavedChanges");
   drawioUrl.searchParams.append("proto", "json");
   drawioUrl.searchParams.append("configure", "1");
+  drawioUrl.searchParams.append("saveAndExit", "0");
+  drawioUrl.searchParams.append("noSaveBtn", "1");
+  drawioUrl.searchParams.append("noExitBtn", "1");
 
   onMount(() => {
     const handleMessage = (e: MessageEvent) => {
@@ -73,7 +84,18 @@
       if (isDrawioReady && !isInternalChange) {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
+          // Check if editor is currently focused
+          const wasFocused = get(isEditorFocused);
+
           loadXml(value);
+
+          // If it was focused, restore focus after a short delay
+          // Delay allows the iframe to process the message and potentially steal focus first
+          if (wasFocused) {
+            setTimeout(() => {
+              focusRestoreTrigger.update((n) => n + 1);
+            }, 50);
+          }
         }, 1000);
       }
     });

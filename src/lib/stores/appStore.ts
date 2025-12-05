@@ -61,3 +61,5 @@ export interface ChatMessage {
 export const chatHistory = writable<ChatMessage[]>([]);
 
 export const isChatOpen = writable<boolean>(true);
+export const isEditorFocused = writable(false);
+export const focusRestoreTrigger = writable(0);
