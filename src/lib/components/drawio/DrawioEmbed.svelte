@@ -60,9 +60,13 @@
 
     window.addEventListener('message', handleMessage);
 
+    let debounceTimer: ReturnType<typeof setTimeout>;
     const unsubscribe = currentXml.subscribe((value) => {
       if (isDrawioReady && !isInternalChange) {
-        loadXml(value);
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          loadXml(value);
+        }, 1500);
       }
     });
 

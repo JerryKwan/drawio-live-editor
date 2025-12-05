@@ -1,6 +1,7 @@
 <script lang="ts">
   import { chatHistory, currentXml, settings, type ChatMessage } from '../../stores/appStore';
   import { llmService } from '../../services/llmService';
+  import { toastStore } from '../../stores/toastStore';
   import { Send, Trash2, Loader2, Play, ArrowDownCircle, Paperclip, Sparkles, Zap, FileText, Wand2, Hammer, Info } from 'lucide-svelte';
 
   let input = $state('');
@@ -11,12 +12,6 @@
   let isResizingInput = $state(false);
   let showActions = $state(false);
   let fileInput: HTMLInputElement;
-  let toastMessage = $state<string | null>(null);
-
-  function showToast(msg: string) {
-    toastMessage = msg;
-    setTimeout(() => toastMessage = null, 3000);
-  }
 
   function startResizeInput(e: MouseEvent) {
     isResizingInput = true;
@@ -48,7 +43,7 @@
   }
 
   function handleUpload() {
-    showToast('File upload is currently in development.');
+    toastStore.add('File upload is currently in development.', 'info');
     // fileInput.click(); // Disable actual click for now as per request
   }
 
@@ -61,19 +56,13 @@
     reader.onload = (e) => {
       const text = e.target?.result as string;
       input += `\n\n[File: ${file.name}]\n\`\`\`\n${text}\n\`\`\``;
-      showToast(`File "${file.name}" attached`);
+      toastStore.add(`File "${file.name}" attached`, 'success');
     };
     reader.readAsText(file);
   }
 </script>
 
 <div class="flex flex-col h-full bg-white text-neutral-900 relative group/chat">
-  <!-- Toast Notification -->
-  {#if toastMessage}
-    <div class="absolute top-12 left-1/2 -translate-x-1/2 bg-neutral-800 text-white text-xs px-3 py-1.5 rounded-full shadow-lg z-50 animate-in fade-in slide-in-from-top-2">
-      {toastMessage}
-    </div>
-  {/if}
 
   <!-- Header -->
   <div class="h-9 border-b border-neutral-200 flex items-center justify-between px-4 bg-neutral-50 shrink-0">
@@ -147,7 +136,7 @@
 
   <!-- Input Area -->
   <div 
-    class="bg-white relative shrink-0 flex flex-col p-4 pt-2"
+    class="bg-white relative shrink-0 flex flex-col p-2 pt-2"
     style="height: {inputHeight}px"
   >
     <!-- Command Suggestions (Slash) -->

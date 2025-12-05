@@ -4,6 +4,7 @@
   import DrawioEmbed from './lib/components/drawio/DrawioEmbed.svelte';
   import ChatPanel from './lib/components/chat/ChatPanel.svelte';
   import SettingsDialog from './lib/components/settings/SettingsDialog.svelte';
+  import ToastContainer from './lib/components/ui/ToastContainer.svelte';
   import { Settings, MessageSquare, PanelLeft, PanelRight } from 'lucide-svelte';
   import { isChatOpen } from './lib/stores/appStore';
 
@@ -63,7 +64,7 @@
       <div class="w-8 h-8 bg-orange-500 rounded flex items-center justify-center text-white font-bold shadow-sm">
         D
       </div>
-      <h1 class="font-semibold text-lg text-neutral-800 tracking-tight">Draw.io Live Editor</h1>
+      <h1 class="font-semibold text-lg text-neutral-800 tracking-tight">AI Powered Draw.io Live Editor</h1>
     </div>
     <div class="flex items-center gap-2">
       <button 
@@ -107,9 +108,7 @@
 
     <!-- CENTER PANEL: Editor -->
     <div class="flex-1 flex flex-col min-w-[200px] overflow-hidden {isDraggingLeft || isDraggingRight ? 'pointer-events-none select-none' : ''}">
-       <div class="h-9 bg-neutral-50 border-b border-neutral-200 flex items-center px-4 text-xs font-medium text-neutral-500 uppercase tracking-wider select-none">
-         XML Editor
-       </div>
+
        <div class="flex-1 relative bg-white">
          <MonacoEditor />
        </div>
@@ -136,4 +135,6 @@
   {#if showSettings}
     <SettingsDialog bind:open={showSettings} />
   {/if}
+
+  <ToastContainer />
 </main>

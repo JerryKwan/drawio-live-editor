@@ -2,10 +2,13 @@
   import { onMount, onDestroy } from 'svelte';
   import * as monaco from 'monaco-editor';
   import { currentXml, chatHistory, isChatOpen } from '../../stores/appStore';
+  import { Lock, Unlock } from 'lucide-svelte';
+  import './worker';
 
   let editorContainer: HTMLDivElement;
   let editor: monaco.editor.IStandaloneCodeEditor;
   let isInternalChange = false;
+  let isReadOnly = $state(true);
 
   onMount(() => {
     // Initialize Monaco Editor
@@ -17,9 +20,10 @@
       minimap: { enabled: false },
       scrollBeyondLastLine: false,
       wordWrap: 'on',
+      readOnly: isReadOnly,
     });
 
-    // Add "Send to LLM" action
+    // ... (keep existing addAction)
     editor.addAction({
       id: 'send-to-llm',
       label: 'Send to LLM',
@@ -44,9 +48,6 @@
     editor.onDidChangeModelContent(() => {
       if (!isInternalChange) {
         const value = editor.getValue();
-        // Update store, but flag to avoid loop if store updates back
-        // Actually, store update will trigger subscription, so we need to handle that.
-        // But here we just update the store. The store subscription should check if value changed.
         currentXml.set(value);
       }
     });
@@ -69,13 +70,46 @@
       editor.dispose();
     };
   });
+
+  $effect(() => {
+    if (editor) {
+      editor.updateOptions({ readOnly: isReadOnly });
+    }
+  });
 </script>
 
-<div bind:this={editorContainer} class="h-full w-full"></div>
+<div class="flex flex-col h-full w-full bg-white">
+  <!-- Header -->
+  <div class="h-9 border-b border-neutral-200 flex items-center justify-between px-4 bg-neutral-50 shrink-0">
+    <span class="font-medium text-xs text-neutral-500 uppercase tracking-wider">XML Editor</span>
+    
+    <button
+      class="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors
+      {isReadOnly 
+        ? 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200' 
+        : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}"
+      onclick={() => isReadOnly = !isReadOnly}
+      title={isReadOnly ? "Click to Unlock" : "Click to Lock"}
+    >
+      {#if isReadOnly}
+        <Lock size={12} />
+        <span>Locked</span>
+      {:else}
+        <Unlock size={12} />
+        <span>Unlocked</span>
+      {/if}
+    </button>
+  </div>
+
+  <!-- Editor Container -->
+  <div class="flex-1 relative min-h-0">
+    <div bind:this={editorContainer} class="absolute inset-0"></div>
+  </div>
+</div>
 
 <style>
   /* Ensure container takes full height */
-  div {
-    min-height: 0;
+  :global(.monaco-editor) {
+    padding-top: 8px;
   }
 </style>
