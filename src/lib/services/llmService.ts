@@ -10,6 +10,21 @@ export async function sendMessage(messages: ChatMessage[], onChunk: (chunk: stri
     const appSettings = get(settings);
     const { baseUrl, apiKey, model, temperature, maxTokens } = appSettings.llm;
 
+    const requestPayload = {
+        model,
+        messages,
+        temperature,
+        max_tokens: maxTokens,
+        stream: true,
+    };
+
+    console.log('[LLM Service] Request URL:', `${baseUrl}/chat/completions`);
+    console.log('[LLM Service] Request Headers:', {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey.substring(0, 10)}...`,
+    });
+    console.log('[LLM Service] Request Payload:', JSON.stringify(requestPayload, null, 2));
+
     try {
         const response = await fetch(`${baseUrl}/chat/completions`, {
             method: 'POST',
@@ -17,17 +32,22 @@ export async function sendMessage(messages: ChatMessage[], onChunk: (chunk: stri
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
             },
-            body: JSON.stringify({
-                model,
-                messages,
-                temperature,
-                max_tokens: maxTokens,
-                stream: true,
-            }),
+            body: JSON.stringify(requestPayload),
         });
 
+        console.log('[LLM Service] Response Status:', response.status, response.statusText);
+
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
+            const errorText = await response.text();
+            console.error('[LLM Service] Error Response Body:', errorText);
+
+            let error;
+            try {
+                error = JSON.parse(errorText);
+            } catch {
+                error = { error: { message: errorText || response.statusText } };
+            }
+
             throw new Error(error.error?.message || `HTTP error! status: ${response.status}`);
         }
 

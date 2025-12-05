@@ -34,7 +34,81 @@
     window.removeEventListener('mouseup', stopResizeInput);
   }
 
-  // ... (keep scrollToBottom, handleSubmit, clearChat, applyCodeBlock)
+  function scrollToBottom() {
+    if (autoScroll && chatContainer) {
+      setTimeout(() => {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }, 0);
+    }
+  }
+
+  async function handleSubmit() {
+    if (!input.trim() || isLoading) return;
+    
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: input,
+      timestamp: Date.now()
+    };
+    
+    chatHistory.update(h => [...h, userMessage]);
+    const userInput = input;
+    input = '';
+    isLoading = true;
+    scrollToBottom();
+    
+    try {
+      // Build messages array in OpenAI format
+      const messages: ChatMessage[] = [
+        {
+          role: 'system',
+          content: `You are an AI assistant helping with Draw.io diagrams. Here is the current diagram XML:\n\`\`\`xml\n${$currentXml}\n\`\`\`\n\nPlease help the user with their request.`,
+          timestamp: Date.now()
+        },
+        {
+          role: 'user',
+          content: userInput,
+          timestamp: Date.now()
+        }
+      ];
+
+      const response = await llmService.sendMessage(messages, (chunk) => {
+        // Handle streaming chunks if needed
+      });
+      
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: response,
+        timestamp: Date.now()
+      };
+      
+      chatHistory.update(h => [...h, assistantMessage]);
+      scrollToBottom();
+    } catch (error) {
+      const errorMessage: ChatMessage = {
+        role: 'system',
+        content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: Date.now()
+      };
+      chatHistory.update(h => [...h, errorMessage]);
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  function clearChat() {
+    if (confirm('Clear all chat messages?')) {
+      chatHistory.set([]);
+    }
+  }
+
+  function applyCodeBlock(content: string) {
+    const xmlMatch = content.match(/```xml\n([\s\S]*?)\n```/);
+    if (xmlMatch) {
+      currentXml.set(xmlMatch[1]);
+      toastStore.add('XML applied to editor', 'success');
+    }
+  }
 
   function handleAction(action: string) {
     input = action;
