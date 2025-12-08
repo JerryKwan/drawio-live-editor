@@ -54,6 +54,16 @@
     open = false;
   }
 
+  // Reset state when dialog opens
+  $effect(() => {
+    if (open) {
+      localSettings = JSON.parse(JSON.stringify($settings));
+      isEditing = false;
+      tempProfile = null;
+      editingProfileId = null;
+    }
+  });
+
   // --- Profile Logic ---
 
   function createProfile() {
@@ -61,8 +71,8 @@
     tempProfile = {
       id: crypto.randomUUID(),
       name: "New Profile",
-      provider: "system",
-      ...SYSTEM_PROVIDER_DEFAULTS,
+      provider: "openai-compatible",
+      ...OPENAI_COMPATIBLE_PROVIDER_DEFAULTS,
     };
     isEditing = true;
     editingProfileId = null;
@@ -495,10 +505,7 @@
                         ? 'ring-2 ring-blue-500 border-blue-500'
                         : 'border-neutral-200'}"
                     >
-                      <button
-                        class="flex-1 flex flex-col text-left mr-4"
-                        onclick={() => setActiveProfile(profile.id)}
-                      >
+                      <div class="flex-1 flex flex-col text-left mr-4">
                         <div class="flex items-center gap-2">
                           <span class="font-semibold text-neutral-800"
                             >{profile.name}</span
@@ -526,11 +533,18 @@
                           ></span>
                           <span>{profile.model}</span>
                         </div>
-                      </button>
+                      </div>
 
-                      <div
-                        class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
+                      <div class="flex items-center gap-1">
+                        {#if localSettings.activeProfileId !== profile.id}
+                          <button
+                            onclick={() => setActiveProfile(profile.id)}
+                            class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                            title="Set as Active"
+                          >
+                            Set Active
+                          </button>
+                        {/if}
                         <button
                           onclick={() => editProfile(profile)}
                           class="p-2 text-neutral-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
