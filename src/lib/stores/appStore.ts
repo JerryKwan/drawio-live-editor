@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { DEFAULT_PROFILE, DEFAULT_SETTINGS } from '../config';
 
 // Default Draw.io XML template
 import DEFAULT_XML from '../../assets/default-graph.xml?raw';
@@ -29,29 +30,6 @@ export interface AppSettings {
         autoApplyDrawioSnippets: boolean;
     };
 }
-
-const DEFAULT_PROFILE: LLMProfile = {
-    id: 'default',
-    name: 'Default Profile',
-    provider: 'openai-compatible',
-    baseUrl: 'https://api.openai.com/v1',
-    apiKey: '',
-    model: 'gpt-4o',
-    temperature: 0.7,
-    maxTokens: 2000,
-    systemPrompt: 'You are an expert Draw.io diagram assistant. You have access to the current XML of the diagram. When asked to modify the diagram, provide the full updated XML in a code block. When asked to explain, reference specific cell IDs or values.',
-};
-
-const DEFAULT_SETTINGS: AppSettings = {
-    activeProfileId: 'default',
-    llmProfiles: [DEFAULT_PROFILE],
-    drawio: {
-        baseUrl: 'https://embed.diagrams.net',
-    },
-    preferences: {
-        autoApplyDrawioSnippets: false,
-    },
-};
 
 // Load settings from localStorage if available
 const savedSettingsStr = localStorage.getItem('appSettings');

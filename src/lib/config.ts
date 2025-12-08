@@ -19,3 +19,21 @@ export const OPENAI_COMPATIBLE_PROVIDER_DEFAULTS = {
 export const DRAWIO_DEFAULTS = {
     baseUrl: '/drawio/', // System managed
 };
+
+export const DEFAULT_PROFILE = {
+    id: 'default',
+    name: 'Default Profile',
+    provider: 'openai-compatible' as const,
+    ...OPENAI_COMPATIBLE_PROVIDER_DEFAULTS,
+};
+
+export const DEFAULT_SETTINGS = {
+    activeProfileId: 'default',
+    llmProfiles: [DEFAULT_PROFILE],
+    drawio: {
+        ...DRAWIO_DEFAULTS,
+    },
+    preferences: {
+        autoApplyDrawioSnippets: false,
+    },
+};
