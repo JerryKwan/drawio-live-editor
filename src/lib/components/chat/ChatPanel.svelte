@@ -21,6 +21,8 @@
     Hammer,
     Info,
   } from "lucide-svelte";
+  import { marked } from "marked";
+  import DOMPurify from "dompurify";
 
   let input = $state("");
   let isLoading = $state(false);
@@ -156,6 +158,16 @@
     };
     reader.readAsText(file);
   }
+
+  function renderMarkdown(content: string): string {
+    try {
+      const html = marked.parse(content, { async: false }) as string;
+      return DOMPurify.sanitize(html);
+    } catch (e) {
+      console.error("Markdown rendering error:", e);
+      return content;
+    }
+  }
 </script>
 
 <div class="flex flex-col h-full bg-white text-neutral-900 relative group/chat">
@@ -205,14 +217,21 @@
           : 'items-start'}"
       >
         <div
-          class="max-w-[90%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap shadow-sm
+          class="max-w-[90%] rounded-2xl px-4 py-2.5 text-sm shadow-sm
+          {msg.role === 'user' || msg.role === 'system'
+            ? 'whitespace-pre-wrap'
+            : 'markdown-content'}
           {msg.role === 'user'
             ? 'bg-blue-600 text-white rounded-br-none'
             : msg.role === 'system'
               ? 'bg-red-50 text-red-800 border border-red-100'
               : 'bg-neutral-100 text-neutral-800 border border-neutral-200 rounded-bl-none'}"
         >
-          {msg.content}
+          {#if msg.role === "assistant"}
+            {@html renderMarkdown(msg.content)}
+          {:else}
+            {msg.content}
+          {/if}
         </div>
         {#if msg.role === "assistant" && msg.content.includes("```xml")}
           <button
@@ -386,3 +405,65 @@
     </div>
   </div>
 </div>
+
+<style>
+  /* Basic Markdown Styles for Chat */
+  :global(.markdown-content p) {
+    margin-bottom: 0.75em;
+  }
+  :global(.markdown-content p:last-child) {
+    margin-bottom: 0;
+  }
+  :global(.markdown-content ul),
+  :global(.markdown-content ol) {
+    margin-left: 1.5em;
+    margin-bottom: 0.75em;
+    list-style-type: disc;
+  }
+  :global(.markdown-content ol) {
+    list-style-type: decimal;
+  }
+  :global(.markdown-content pre) {
+    background-color: #f3f4f6;
+    padding: 0.75em;
+    border-radius: 0.5em;
+    overflow-x: auto;
+    margin-bottom: 0.75em;
+    font-family: monospace;
+    font-size: 0.9em;
+  }
+  :global(.markdown-content code) {
+    background-color: #f3f4f6; /* Neutral 100 */
+    padding: 0.2em 0.4em;
+    border-radius: 0.25em;
+    font-family: monospace;
+    font-size: 0.9em;
+  }
+  :global(.markdown-content pre code) {
+    background-color: transparent;
+    padding: 0;
+  }
+  :global(.markdown-content h1),
+  :global(.markdown-content h2),
+  :global(.markdown-content h3) {
+    font-weight: 600;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+  :global(.markdown-content h1) {
+    font-size: 1.25em;
+  }
+  :global(.markdown-content h2) {
+    font-size: 1.1em;
+  }
+  :global(.markdown-content blockquote) {
+    border-left: 3px solid #e5e7eb;
+    padding-left: 1em;
+    color: #6b7280;
+    margin-bottom: 0.75em;
+  }
+  :global(.markdown-content a) {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+</style>
