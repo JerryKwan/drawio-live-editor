@@ -1,0 +1,90 @@
+services:
+  drawio: # drawio
+    image: jgraph/drawio
+    container_name: drawio
+    restart: unless-stopped
+    ports:
+      - 8890:8080
+      # - 8893:8443
+    environment:
+      PUBLIC_DNS: domain
+      ORGANISATION_UNIT: unit
+      ORGANISATION: org
+      CITY: city
+      STATE: state
+      COUNTRY_CODE: country
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://domain:8080 || exit 1"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+  llm: # local llm service
+    build:
+      context: ./llm
+      # args:
+      #   BUILDKIT_INLINE_CACHE: 1
+      #   http_proxy:  "http://10.255.60.19:1081"
+      #   https_proxy: "http://10.255.60.19:1081"
+      #   no_proxy:    "localhost,127.0.0.1"
+    container_name: llm
+    restart: unless-stopped
+    ports:
+      - 8891:8080
+    environment:
+      - TARGET_BASE_URL=https://deepseek.i.villm.com/v1
+      - TARGET_API_KEY=villm
+      - TARGET_MODEL=VLLM-N2
+      - DEBUG_LOG=true
+  drawio-live-editor-dev: # drawio-live-editor-dev
+    build:
+      context: .
+      target: drawio-live-editor-dev
+    container_name: drawio-live-editor
+    restart: unless-stopped
+    ports:
+      - 8892:3000
+    profiles: ["dev"]
+    volumes:
+      - ./src:/app/src
+  drawio-live-editor: # drawio-live-editor
+    build:
+      context: .
+    container_name: drawio-live-editor
+    restart: unless-stopped
+    ports:
+      - 8892:8080
+    profiles: ["prod"]
+
+  gateway-dev:
+    build:
+      context: ./gateway
+    container_name: gateway
+    restart: unless-stopped
+    ports:
+      - 8899:8080
+    environment:
+      - UPSTREAM_FRONTEND=http://drawio-live-editor:3000
+    profiles: ["dev"]
+    depends_on:
+      - drawio-live-editor-dev
+      - drawio
+      - llm
+
+  gateway:
+    build:
+      context: ./gateway
+      # args:
+      #   BUILDKIT_INLINE_CACHE: 1
+      #   http_proxy:  "http://10.255.60.19:1081"
+      #   https_proxy: "http://10.255.60.19:1081"
+      #   no_proxy:    "localhost,127.0.0.1"
+    container_name: gateway
+    restart: unless-stopped
+    ports:
+      - 8899:8080
+    profiles: ["prod"]
+    depends_on:
+      - drawio-live-editor
+      - drawio
+      - llm

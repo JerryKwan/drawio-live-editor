@@ -13,7 +13,7 @@
   let isDrawioReady = false;
   let lastSentXml = "";
 
-  const drawioUrl = new URL($settings.drawio.baseUrl);
+  const drawioUrl = new URL($settings.drawio.baseUrl, window.location.origin);
   // Configure Draw.io embed mode
   // Ref: https://www.drawio.com/doc/faq/embed-mode
   //      https://www.drawio.com/doc/faq/supported-url-parameters

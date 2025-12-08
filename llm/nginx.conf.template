@@ -1,0 +1,89 @@
+worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    access_log    /dev/stdout;
+    
+    # Use Docker's internal DNS resolver
+    resolver 127.0.0.11 ipv6=off;
+
+    server {
+        listen 8080;
+
+        location / {
+            # Enable Lua for body and header modification
+            access_by_lua_block {
+                local cjson = require "cjson"
+                local target_key = "${TARGET_API_KEY}"
+                local debug_log = "${DEBUG_LOG}" == "true"
+                
+                if debug_log then
+                    ngx.log(ngx.ERR, "--- LLM Proxy Debug Start ---")
+                    ngx.log(ngx.ERR, "Request URI: ", ngx.var.request_uri)
+                    ngx.log(ngx.ERR, "Target Base URL: ", "${TARGET_BASE_URL}")
+                end
+
+                -- Inject API Key if provided
+                if target_key and target_key ~= "" then
+                    if debug_log then ngx.log(ngx.ERR, "Injecting Authorization Header") end
+                    ngx.req.set_header("Authorization", "Bearer " .. target_key)
+                end
+                
+                -- Handle Model override if provided
+                local target_model = "${TARGET_MODEL}"
+                
+                if target_model and target_model ~= "" then
+                    if debug_log then ngx.log(ngx.ERR, "Target Model Override: ", target_model) end
+                    
+                    ngx.req.read_body()
+                    local body_data = ngx.req.get_body_data()
+                    
+                    if body_data then
+                        if debug_log then ngx.log(ngx.ERR, "Original Body: ", body_data) end
+                        
+                        -- Try to parse JSON body
+                        local success, body = pcall(cjson.decode, body_data)
+                        if success and body then
+                            -- Override model
+                            body.model = target_model
+                            
+                            -- Re-encode and set body
+                            local new_body = cjson.encode(body)
+                            if debug_log then ngx.log(ngx.ERR, "Modified Body: ", new_body) end
+                            
+                            ngx.req.set_body_data(new_body)
+                            -- Must update Content-Length
+                            ngx.req.set_header("Content-Length", #new_body)
+                        else
+                             if debug_log then ngx.log(ngx.ERR, "Failed to decode JSON body") end
+                        end
+                    end
+                end
+                if debug_log then ngx.log(ngx.ERR, "--- LLM Proxy Debug End ---") end
+            }
+
+            proxy_pass ${TARGET_BASE_URL}$request_uri;
+            
+            # Proxy SSL settings (essential if upstream is https)
+            proxy_ssl_server_name on;
+            proxy_ssl_verify off; # Turn on if strict security is required
+            
+            # Standard Proxy Headers
+            proxy_set_header Host $proxy_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            
+            # Streaming support (SSE)
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            chunked_transfer_encoding on;
+        }
+    }
+}
