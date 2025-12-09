@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
     chatHistory,
+    chatInput,
     currentXml,
     settings,
     type ChatMessage,
@@ -20,17 +21,17 @@
     Wand2,
     Hammer,
     Info,
+    XCircle,
   } from "lucide-svelte";
   import { marked } from "marked";
   import DOMPurify from "dompurify";
 
   import ConfirmationDialog from "../ui/ConfirmationDialog.svelte";
 
-  let input = $state("");
-  let isLoading = $state(false);
   let chatContainer: HTMLDivElement;
+  let isLoading = $state(false);
   let autoScroll = $state(true);
-  let inputHeight = $state(120);
+  let inputHeight = $state(150);
   let isResizingInput = $state(false);
   let showActions = $state(false);
   let showClearConfirm = $state(false);
@@ -66,17 +67,17 @@
   }
 
   async function handleSubmit() {
-    if (!input.trim() || isLoading) return;
+    if (!$chatInput.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
       role: "user",
-      content: input,
+      content: $chatInput,
       timestamp: Date.now(),
     };
 
     chatHistory.update((h) => [...h, userMessage]);
-    const userInput = input;
-    input = "";
+    const userInput = $chatInput;
+    chatInput.set("");
     isLoading = true;
     scrollToBottom(true);
 
@@ -160,6 +161,12 @@
     toastStore.add("Chat history cleared", "success");
   }
 
+  function clearDiagram() {
+    currentXml.set("");
+    toastStore.add("Diagram cleared to empty", "success");
+    showActions = false;
+  }
+
   function applyCodeBlock(content: string) {
     const xmlMatch = content.match(/```xml\s*([\s\S]*?)\s*```/);
     if (xmlMatch) {
@@ -169,7 +176,7 @@
   }
 
   function handleAction(action: string) {
-    input = action;
+    chatInput.set(action);
     showActions = false;
     // Focus textarea?
   }
@@ -187,7 +194,10 @@
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      input += `\n\n[File: ${file.name}]\n\`\`\`\n${text}\n\`\`\``;
+      chatInput.update(
+        (current) =>
+          current + `\n\n[File: ${file.name}]\n\`\`\`\n${text}\n\`\`\``,
+      );
       toastStore.add(`File "${file.name}" attached`, "success");
     };
     reader.readAsText(file);
@@ -307,14 +317,14 @@
     style="height: {inputHeight}px"
   >
     <!-- Command Suggestions (Slash) -->
-    {#if input === "/"}
+    {#if $chatInput === "/"}
       <div
         class="absolute bottom-16 left-4 right-4 mb-2 bg-white border border-neutral-200 rounded-xl shadow-lg overflow-hidden z-10 animate-in slide-in-from-bottom-2 ring-1 ring-black/5"
       >
         <div class="p-1">
           <button
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 rounded-lg text-sm text-neutral-700 flex items-center gap-2"
-            onclick={() => (input = "/explain ")}
+            onclick={() => chatInput.set("/explain ")}
           >
             <span
               class="font-mono text-xs bg-neutral-200 px-1.5 py-0.5 rounded text-neutral-600"
@@ -323,7 +333,7 @@
           </button>
           <button
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 rounded-lg text-sm text-neutral-700 flex items-center gap-2"
-            onclick={() => (input = "/fix ")}
+            onclick={() => chatInput.set("/fix ")}
           >
             <span
               class="font-mono text-xs bg-neutral-200 px-1.5 py-0.5 rounded text-neutral-600"
@@ -332,7 +342,7 @@
           </button>
           <button
             class="w-full text-left px-4 py-2 hover:bg-neutral-100 rounded-lg text-sm text-neutral-700 flex items-center gap-2"
-            onclick={() => (input = "/optimize ")}
+            onclick={() => chatInput.set("/optimize ")}
           >
             <span
               class="font-mono text-xs bg-neutral-200 px-1.5 py-0.5 rounded text-neutral-600"
@@ -347,7 +357,7 @@
       class="flex-1 flex flex-col relative bg-neutral-50 border border-neutral-200 rounded-2xl focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all shadow-sm hover:border-neutral-300"
     >
       <textarea
-        bind:value={input}
+        bind:value={$chatInput}
         onkeydown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -385,6 +395,13 @@
                   >
                     <FileText size={16} class="text-blue-500" />
                     <span>Create Diagram...</span>
+                  </button>
+                  <button
+                    class="w-full text-left px-3 py-2 hover:bg-neutral-100 rounded-lg text-sm text-neutral-700 flex items-center gap-3 transition-colors"
+                    onclick={clearDiagram}
+                  >
+                    <XCircle size={16} class="text-red-500" />
+                    <span>Clear Diagram</span>
                   </button>
                   <button
                     class="w-full text-left px-3 py-2 hover:bg-neutral-100 rounded-lg text-sm text-neutral-700 flex items-center gap-3 transition-colors"
@@ -435,7 +452,7 @@
 
         <button
           onclick={handleSubmit}
-          disabled={!input.trim() || isLoading}
+          disabled={!$chatInput.trim() || isLoading}
           class="p-2 bg-blue-600 rounded-xl text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500 transition-all shadow-sm hover:shadow active:scale-95"
         >
           {#if isLoading}

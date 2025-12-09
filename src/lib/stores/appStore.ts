@@ -31,47 +31,19 @@ export interface AppSettings {
     };
 }
 
-// Load settings from localStorage if available
+// Load settings from localStorage or use defaults
 const savedSettingsStr = localStorage.getItem('appSettings');
-let savedSettings = savedSettingsStr ? JSON.parse(savedSettingsStr) : {};
+const initialSettings: AppSettings = savedSettingsStr
+    ? {
+        ...DEFAULT_SETTINGS,
+        ...JSON.parse(savedSettingsStr),
+        // Deep merge nested objects
+        drawio: { ...DEFAULT_SETTINGS.drawio, ...(JSON.parse(savedSettingsStr).drawio || {}) },
+        preferences: { ...DEFAULT_SETTINGS.preferences, ...(JSON.parse(savedSettingsStr).preferences || {}) },
+    }
+    : DEFAULT_SETTINGS;
 
-// Migration: If old settings format (has 'llm' object but no 'llmProfiles'), convert to profile
-if (savedSettings.llm && !savedSettings.llmProfiles) {
-    const migratedProfile: LLMProfile = {
-        ...DEFAULT_PROFILE,
-        ...savedSettings.llm,
-        id: 'default',
-        name: 'Default Profile',
-        provider: 'openai-compatible'
-    };
-    savedSettings = {
-        ...savedSettings,
-        activeProfileId: 'default',
-        llmProfiles: [migratedProfile]
-    };
-    delete savedSettings.llm; // Remove old key
-}
-
-// Migration: Convert legacy 'openai' provider to 'openai-compatible'
-if (savedSettings.llmProfiles) {
-    savedSettings.llmProfiles = savedSettings.llmProfiles.map((p: any) => {
-        if (p.provider === 'openai') {
-            return { ...p, provider: 'openai-compatible' };
-        }
-        return p;
-    });
-}
-
-const mergedSettings: AppSettings = {
-    ...DEFAULT_SETTINGS,
-    ...savedSettings,
-    // Deep merge for specific objects if needed, but for arrays like llmProfiles we generally prefer saved ones or defaults
-    // However, if we migrated above, savedSettings now has the correct structure
-    drawio: { ...DEFAULT_SETTINGS.drawio, ...savedSettings.drawio },
-    preferences: { ...DEFAULT_SETTINGS.preferences, ...savedSettings.preferences },
-};
-
-export const settings = writable<AppSettings>(mergedSettings);
+export const settings = writable<AppSettings>(initialSettings);
 
 // Subscribe to settings changes to save to localStorage
 settings.subscribe((value) => {
@@ -86,6 +58,7 @@ export interface ChatMessage {
 }
 
 export const chatHistory = writable<ChatMessage[]>([]);
+export const chatInput = writable<string>("");
 
 export const isChatOpen = writable<boolean>(true);
 export const isEditorFocused = writable(false);

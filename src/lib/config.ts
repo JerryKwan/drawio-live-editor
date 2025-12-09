@@ -17,14 +17,22 @@ export const OPENAI_COMPATIBLE_PROVIDER_DEFAULTS = {
 };
 
 export const DRAWIO_DEFAULTS = {
+    // You can use https://embed.diagrams.net too, but not recommended
     baseUrl: '/drawio/', // System managed
 };
+
+// export const DEFAULT_PROFILE = {
+//     id: 'default',
+//     name: 'Default Profile',
+//     provider: 'openai-compatible' as const,
+//     ...OPENAI_COMPATIBLE_PROVIDER_DEFAULTS,
+// };
 
 export const DEFAULT_PROFILE = {
     id: 'default',
     name: 'Default Profile',
-    provider: 'openai-compatible' as const,
-    ...OPENAI_COMPATIBLE_PROVIDER_DEFAULTS,
+    provider: 'system' as const,
+    ...SYSTEM_PROVIDER_DEFAULTS,
 };
 
 export const DEFAULT_SETTINGS = {

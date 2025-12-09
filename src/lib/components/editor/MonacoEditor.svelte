@@ -4,6 +4,7 @@
   import {
     currentXml,
     chatHistory,
+    chatInput,
     isChatOpen,
     isEditorFocused,
     focusRestoreTrigger,
@@ -53,15 +54,10 @@
       run: (ed) => {
         const selection = ed.getModel()?.getValueInRange(ed.getSelection()!);
         if (selection) {
-          // Add to chat history
-          chatHistory.update((h) => [
-            ...h,
-            {
-              role: "user",
-              content: `Here is a snippet of the XML:\n\`\`\`xml\n${selection}\n\`\`\`\nCan you explain or modify this?`,
-              timestamp: Date.now(),
-            },
-          ]);
+          // Set chat input with selected XML
+          chatInput.set(
+            `Here is a snippet of the XML:\n\`\`\`xml\n${selection}\n\`\`\`\nCan you explain or modify this?`,
+          );
           // Open chat if closed
           isChatOpen.set(true);
         }
