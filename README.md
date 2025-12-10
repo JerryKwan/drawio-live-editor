@@ -26,7 +26,7 @@ The system displays a default Transformer architecture diagram on startup as a t
 
 ## Screenshot
 
-![Draw.io Live Editor Main Interface](./docs/images/main.jpg)
+![Draw.io Live Editor Main Interface](./docs/images/main_interface.jpg)
 
 *The main interface showing the integrated Monaco Editor, Draw.io canvas, and AI chat panel.*
 
