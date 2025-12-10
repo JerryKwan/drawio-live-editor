@@ -22,6 +22,7 @@
     Hammer,
     Info,
     XCircle,
+    StopCircle,
   } from "lucide-svelte";
   import { marked } from "marked";
   import DOMPurify from "dompurify";
@@ -36,6 +37,7 @@
   let showActions = $state(false);
   let showClearConfirm = $state(false);
   let fileInput: HTMLInputElement;
+  let abortController: AbortController | null = $state(null);
 
   function startResizeInput(e: MouseEvent) {
     isResizingInput = true;
@@ -79,6 +81,9 @@
     const userInput = $chatInput;
     chatInput.set("");
     isLoading = true;
+
+    // Create abort controller for this request
+    abortController = new AbortController();
     scrollToBottom(true);
 
     try {
@@ -130,6 +135,7 @@
           scrollToBottom();
         },
         $currentXml,
+        abortController.signal,
       );
 
       // Final update is mostly redundant if chunks handled it, but good for consistency
@@ -148,6 +154,14 @@
       chatHistory.update((h) => [...h, errorMessage]);
     } finally {
       isLoading = false;
+      abortController = null;
+    }
+  }
+
+  function handleAbort() {
+    if (abortController) {
+      abortController.abort();
+      toastStore.add("Request cancelled", "info");
     }
   }
 
@@ -450,17 +464,23 @@
           />
         </div>
 
-        <button
-          onclick={handleSubmit}
-          disabled={!$chatInput.trim() || isLoading}
-          class="p-2 bg-blue-600 rounded-xl text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500 transition-all shadow-sm hover:shadow active:scale-95"
-        >
-          {#if isLoading}
-            <Loader2 size={18} class="animate-spin" />
-          {:else}
+        {#if isLoading}
+          <button
+            onclick={handleAbort}
+            class="p-2 bg-red-600 rounded-xl text-white hover:bg-red-500 transition-all shadow-sm hover:shadow active:scale-95"
+            title="Stop generation"
+          >
+            <StopCircle size={18} />
+          </button>
+        {:else}
+          <button
+            onclick={handleSubmit}
+            disabled={!$chatInput.trim()}
+            class="p-2 bg-blue-600 rounded-xl text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500 transition-all shadow-sm hover:shadow active:scale-95"
+          >
             <Send size={18} />
-          {/if}
-        </button>
+          </button>
+        {/if}
       </div>
     </div>
   </div>

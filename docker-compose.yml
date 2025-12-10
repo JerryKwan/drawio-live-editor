@@ -22,20 +22,14 @@ services:
   llm: # local llm service
     build:
       context: ./llm
-      # args:
-      #   BUILDKIT_INLINE_CACHE: 1
-      #   http_proxy:  "http://10.255.60.19:1081"
-      #   https_proxy: "http://10.255.60.19:1081"
-      #   no_proxy:    "localhost,127.0.0.1"
     container_name: llm
     restart: unless-stopped
     ports:
       - 8891:8080
     environment:
-      - TARGET_BASE_URL=https://deepseek.i.villm.com/v1
-      - TARGET_API_KEY=villm
-      - TARGET_MODEL=VLLM-N2
-      - DEBUG_LOG=true
+      - TARGET_BASE_URL=${TARGET_BASE_URL}
+      - TARGET_API_KEY=${TARGET_API_KEY}
+      - TARGET_MODEL=${TARGET_MODEL}
   drawio-live-editor-dev: # drawio-live-editor-dev
     build:
       context: .
@@ -74,15 +68,12 @@ services:
   gateway:
     build:
       context: ./gateway
-      # args:
-      #   BUILDKIT_INLINE_CACHE: 1
-      #   http_proxy:  "http://10.255.60.19:1081"
-      #   https_proxy: "http://10.255.60.19:1081"
-      #   no_proxy:    "localhost,127.0.0.1"
     container_name: gateway
     restart: unless-stopped
     ports:
       - 8899:8080
+    environment:
+      - UPSTREAM_FRONTEND=http://drawio-live-editor:8080
     profiles: ["prod"]
     depends_on:
       - drawio-live-editor

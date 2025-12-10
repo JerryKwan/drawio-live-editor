@@ -66,10 +66,19 @@
 
   // --- Profile Logic ---
 
+  // Fallback for browsers that don't support crypto.randomUUID (non-secure contexts)
+  function generateId(): string {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback: simple random ID generator
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+  }
+
   function createProfile() {
     // Start with minimal structure, provider defaults fill the rest
     tempProfile = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: "New Profile",
       provider: "openai-compatible",
       ...OPENAI_COMPATIBLE_PROVIDER_DEFAULTS,

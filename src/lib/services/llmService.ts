@@ -6,7 +6,7 @@ export interface ChatMessage {
     content: string;
 }
 
-export async function sendMessage(messages: ChatMessage[], onChunk: (chunk: string) => void, xmlContext?: string): Promise<string> {
+export async function sendMessage(messages: ChatMessage[], onChunk: (chunk: string) => void, xmlContext?: string, signal?: AbortSignal): Promise<string> {
     const appSettings = get(settings);
     const activeProfile = appSettings.llmProfiles.find(p => p.id === appSettings.activeProfileId);
 
@@ -53,6 +53,7 @@ export async function sendMessage(messages: ChatMessage[], onChunk: (chunk: stri
                 'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify(requestPayload),
+            signal,
         });
 
         console.log('[LLM Service] Response Status:', response.status, response.statusText);
@@ -139,6 +140,10 @@ export async function sendMessage(messages: ChatMessage[], onChunk: (chunk: stri
 
         return fullContent;
     } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+            console.log('[LLM Service] Request aborted by user');
+            throw new Error('Request cancelled by user');
+        }
         console.error('LLM Service Error:', error);
         throw error;
     }

@@ -1,0 +1,46 @@
+<mxfile host="embed.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36" version="29.2.6">
+  <diagram id="9utIx5HKTLmHJPYKZSI5" name="Page-1">
+    <mxGraphModel dx="654" dy="520" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="gateway" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=light-dark(#999999,#BDC7D4);strokeWidth=3;arcSize=6;shadow=0;" value="&lt;div style=&quot;padding: 4px;&quot;&gt;&lt;b style=&quot;font-size: 14px&quot;&gt;GATEWAY&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; color: #555;&quot;&gt;OpenResty&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-family: &#39;Consolas&#39;, &#39;Courier New&#39;, monospace; font-size: 10px; color: #666; background: #eee; padding: 2px 4px; border-radius: 3px;&quot;&gt;:8899&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="160" x="340" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="drawio" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#999999;strokeWidth=1;arcSize=6;shadow=0;" value="&lt;div style=&quot;padding: 4px;&quot;&gt;&lt;b style=&quot;font-size: 13px&quot;&gt;Local Draw.io&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;span style=&quot;font-family: Consolas, &amp;quot;Courier New&amp;quot;, monospace; font-size: 10px; color: rgb(102, 102, 102);&quot;&gt;PORT :8890&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="120" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="editor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#999999;strokeWidth=1;arcSize=6;shadow=0;" value="&lt;div style=&quot;padding: 4px;&quot;&gt;&lt;b style=&quot;font-size: 13px&quot;&gt;Local Editor&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;span style=&quot;font-family: Consolas, &amp;quot;Courier New&amp;quot;, monospace; font-size: 10px; color: rgb(102, 102, 102);&quot;&gt;PORT :8892&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="350" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="llm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#999999;strokeWidth=1;arcSize=6;shadow=0;" value="&lt;div style=&quot;padding: 4px;&quot;&gt;&lt;b style=&quot;font-size: 13px&quot;&gt;Local LLM Service&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;span style=&quot;font-family: Consolas, &amp;quot;Courier New&amp;quot;, monospace; font-size: 10px; color: rgb(102, 102, 102);&quot;&gt;PORT :8891&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="580" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="edge1" edge="1" parent="1" source="gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1;" target="drawio">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="210" />
+              <mxPoint x="190" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge2" edge="1" parent="1" source="gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1;" target="editor">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="210" />
+              <mxPoint x="420" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge3" edge="1" parent="1" source="gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1;" target="llm">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="210" />
+              <mxPoint x="650" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
